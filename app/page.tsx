@@ -330,17 +330,14 @@ export default function Home() {
 									active={showHistory}
 									onClick={() => setShowHistory(!showHistory)}
 								/>
-								<ToolbarButton
-									icon={<ExternalLink size={15} />}
-									label="Abrir em popup"
-									onClick={() =>
-										window.open(
-											"/popup",
-											"AjustaPopup",
-											"width=450,height=700,resizable=yes,scrollbars=yes",
-										)
-									}
-								/>
+								<a
+									href="/popup"
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-md transition-colors text-[#9C917A] hover:text-[#EDE6D6] hover:bg-[#1F1B14]">
+									<ExternalLink size={15} />
+									Abrir em popup
+								</a>
 							</div>
 						</header>
 
