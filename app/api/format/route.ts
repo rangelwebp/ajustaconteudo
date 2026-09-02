@@ -37,25 +37,28 @@ ${fonte ? `Fonte: ${fonte}` : ""}
 4. Não alterar o significado original do texto
 5. Retornar APENAS o JSON no formato especificado
 
-IMPORTANTE: Retorne EXATAMENTE este JSON:
+IMPORTANTE: Retorne EXATAMENTE este JSON completo, sem cortar:
 {
   "titulo": "título formatado",
   "subtitulo": "subtítulo formatado ou string vazia",
   "corpo": "corpo formatado",
   "fonte": "fonte formatada ou string vazia",
   "versaoX": "versão para Twitter/X com máximo 270 caracteres"
-}`,
+}
+
+Não adicione texto fora do JSON. Não use markdown. JSON completo e válido.`,
 				},
 				{
 					role: "user",
 					content: `Formate este texto jornalístico:
 
+
 ${textoCompleto}`,
 				},
 			],
-			model: "openai/gpt-oss-120b", // ✅ Modelo da sua lista
+			model: "openai/gpt-oss-120b",
 			temperature: 0.3,
-			max_tokens: 1000,
+			max_tokens: 2000,
 		});
 
 		let content = chatCompletion.choices[0]?.message?.content || "";
@@ -73,6 +76,18 @@ ${textoCompleto}`,
 		} catch (parseError) {
 			console.error("Erro ao parsear JSON:", parseError);
 			console.error("Conteúdo recebido:", content);
+
+			// Tenta extrair JSON mesmo se estiver quebrado
+			const jsonMatch = content.match(/\{[\s\S]*\}/);
+			if (jsonMatch) {
+				try {
+					const partialContent = JSON.parse(jsonMatch[0]);
+					return NextResponse.json(partialContent);
+				} catch (e) {
+					// Ignora
+				}
+			}
+
 			return NextResponse.json(
 				{ error: "Erro ao processar resposta da IA. Tente novamente." },
 				{ status: 500 },
