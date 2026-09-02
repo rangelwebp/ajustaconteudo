@@ -247,14 +247,10 @@ export default function Home() {
 		<>
 			<Toaster position="top-right" richColors theme="dark" />
 
-			{/* Botão Flutuante */}
 			<motion.button
 				initial={{ scale: 0 }}
 				animate={{ scale: 1 }}
 				onClick={() => setIsFloating(!isFloating)}
-				aria-label={
-					isFloating ? "Minimizar painel" : "Abrir painel flutuante"
-				}
 				className="fixed bottom-6 right-6 z-50 bg-[#C99A3C] hover:bg-[#DCB158] text-[#17140F] p-3.5 rounded-full shadow-lg shadow-black/40 transition-colors">
 				{isFloating ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
 			</motion.button>
@@ -296,7 +292,6 @@ export default function Home() {
 			{!isFloating && (
 				<main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
 					<div className="max-w-4xl mx-auto">
-						{/* Header */}
 						<div className="flex justify-between items-center mb-8">
 							<motion.h1
 								initial={{ opacity: 0, x: -20 }}
@@ -361,8 +356,6 @@ export default function Home() {
 		</>
 	);
 }
-
-// Componentes
 
 function FloatingPanel({ ...props }: any) {
 	return (
@@ -652,9 +645,7 @@ function ResultField({ label, value, onCopy, isCopied, multiline }: any) {
 				</button>
 			</div>
 			<p
-				className={`text-gray-100 p-4 bg-gray-900/50 rounded-lg border border-gray-700 ${
-					multiline ? "whitespace-pre-wrap" : ""
-				}`}>
+				className={`text-gray-100 p-4 bg-gray-900/50 rounded-lg border border-gray-700 ${multiline ? "whitespace-pre-wrap" : ""}`}>
 				{value}
 			</p>
 		</div>
