@@ -129,9 +129,17 @@ export default function Home() {
 		text: string,
 		fieldName: string,
 		fieldKey: string,
+		fonte?: string,
 	) => {
 		try {
-			await navigator.clipboard.writeText(text);
+			let textToCopy = text;
+
+			// Se for o corpo e tiver fonte, adiciona a fonte no final
+			if (fieldKey === "corpo" && fonte?.trim()) {
+				textToCopy = `${text}\n\n[ 📸 Redes Sociais / ${fonte} ]`;
+			}
+
+			await navigator.clipboard.writeText(textToCopy);
 			setCopiedField(fieldKey);
 			toast.success(`${fieldName} copiado!`);
 			setTimeout(() => setCopiedField(null), 2000);
@@ -657,8 +665,8 @@ function ResultSheet({ formatted, onCopy, copiedField, compact }: any) {
 			label: "Corpo",
 			value: formatted.corpo,
 			multiline: true,
+			fonte: formatted.fonte, // Adiciona a fonte aqui
 		},
-		{ key: "fonte", label: "Fonte", value: formatted.fonte },
 		{
 			key: "versaoX",
 			label: "Versão X",
@@ -695,7 +703,7 @@ function ResultSheet({ formatted, onCopy, copiedField, compact }: any) {
 						</span>
 						<button
 							onClick={() =>
-								onCopy(row.value, row.label, row.key)
+								onCopy(row.value, row.label, row.key, row.fonte)
 							}
 							className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors ${
 								copiedField === row.key
@@ -717,6 +725,12 @@ function ResultSheet({ formatted, onCopy, copiedField, compact }: any) {
 								: ""
 						}`}>
 						{row.value}
+						{/* Adiciona a fonte no final do corpo */}
+						{row.multiline && row.fonte && (
+							<p className="text-[#9C917A] text-sm mt-4">
+								[ 📸 Redes Sociais / {row.fonte} ]
+							</p>
+						)}
 					</p>
 				</div>
 			))}
