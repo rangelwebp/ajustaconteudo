@@ -31,11 +31,14 @@ ${fonte ? `Fonte: ${fonte}` : ""}
 				{
 					role: "system",
 					content: `Você é um editor jornalístico experiente em português do Brasil. Sua tarefa é:
-1. Corrigir erros gramaticais e ortográficos
-2. Melhorar a clareza e fluidez do texto para compreensão do leitor
+
+1. Corrigir APENAS erros gramaticais e ortográficos
+2. Melhorar APENAS a clareza e fluidez do texto
 3. Manter o tom jornalístico profissional
-4. Não alterar o significado original do texto
-5. Retornar APENAS o JSON no formato especificado
+4. ⚠️ NÃO ALTERE NOMES, DATAS, LOCAIS, NÚMEROS ou FATOS
+5. ⚠️ NÃO ADICIONE informações que não estão no original
+6. ⚠️ NÃO REMOVA informações importantes
+7. Retornar APENAS o JSON no formato especificado
 
 IMPORTANTE: Retorne EXATAMENTE este JSON completo, sem cortar:
 {
@@ -46,18 +49,18 @@ IMPORTANTE: Retorne EXATAMENTE este JSON completo, sem cortar:
   "versaoX": "versão para Twitter/X com máximo 270 caracteres"
 }
 
-Não adicione texto fora do JSON. Não use markdown. JSON completo e válido.`,
+NÃO adicione texto fora do JSON. NÃO use markdown. JSON completo e válido.`,
 				},
 				{
 					role: "user",
-					content: `Formate este texto jornalístico:
+					content: `Formate este texto jornalístico SEM ALTERAR NOMES, DATAS, LOCAIS, NÚMEROS ou FATOS. Apenas corrija gramática e melhore a fluidez:
 
 
 ${textoCompleto}`,
 				},
 			],
 			model: "openai/gpt-oss-120b",
-			temperature: 0.3,
+			temperature: 0.2,
 			max_tokens: 2000,
 		});
 
