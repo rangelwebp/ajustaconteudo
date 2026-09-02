@@ -31,6 +31,16 @@ interface HistoryItem extends FormattedContent {
 	createdAt: string;
 }
 
+// Cada campo carrega uma cor própria — não é decoração, é identidade
+// estrutural: a mesma cor aparece no rótulo do input e no resultado.
+const FIELD_COLOR = {
+	titulo: "#C99A3C", // âmbar
+	subtitulo: "#8FA6C7", // azul empoeirado
+	corpo: "#B9AF98", // ink neutro
+	fonte: "#7A9B7E", // sálvia
+	versaoX: "#BE6A4E", // terracota
+} as const;
+
 export default function Home() {
 	const [formData, setFormData] = useState({
 		titulo: "",
@@ -234,7 +244,7 @@ export default function Home() {
 		const top = 100;
 
 		const popup = window.open(
-			"/popup",
+			`${window.location.origin}/popup`,
 			"AjustaPopup",
 			`width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`,
 		);
@@ -245,81 +255,90 @@ export default function Home() {
 
 	return (
 		<>
-			<Toaster position="top-right" richColors theme="dark" />
+			<Toaster
+				position="top-right"
+				richColors
+				theme="dark"
+				toastOptions={{
+					style: {
+						background: "#1F1B14",
+						border: "1px solid #35301F",
+						color: "#EDE6D6",
+					},
+				}}
+			/>
 
-			<motion.button
-				initial={{ scale: 0 }}
-				animate={{ scale: 1 }}
+			<button
 				onClick={() => setIsFloating(!isFloating)}
+				aria-label={
+					isFloating ? "Minimizar painel" : "Abrir painel flutuante"
+				}
 				className="fixed bottom-6 right-6 z-50 bg-[#C99A3C] hover:bg-[#DCB158] text-[#17140F] p-3.5 rounded-full shadow-lg shadow-black/40 transition-colors">
 				{isFloating ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-			</motion.button>
+			</button>
 
-			{isFloating && (
-				<motion.div
-					initial={{ opacity: 0, y: 100, scale: 0.9 }}
-					animate={{ opacity: 1, y: 0, scale: 1 }}
-					exit={{ opacity: 0, y: 100, scale: 0.9 }}
-					className="fixed bottom-24 right-6 z-40 w-[400px] max-h-[80vh] overflow-y-auto">
-					<FloatingPanel
-						formData={formData}
-						formatted={formatted}
-						loading={loading}
-						isMinimized={isMinimized}
-						onToggleMinimize={() => setIsMinimized(!isMinimized)}
-						onToggleHistory={() => setShowHistory(!showHistory)}
-						onToggleImportExport={() =>
-							setShowImportExport(!showImportExport)
-						}
-						onClose={() => setIsFloating(false)}
-						onSubmit={handleSubmit}
-						onChange={handleChange}
-						onCopy={copyToClipboard}
-						copiedField={copiedField}
-						history={history}
-						showHistory={showHistory}
-						showImportExport={showImportExport}
-						exportHistory={exportHistory}
-						importHistory={importHistory}
-						clearHistory={clearHistory}
-						loadFromHistory={loadFromHistory}
-						deleteFromHistory={deleteFromHistory}
-						formatDate={formatDate}
-					/>
-				</motion.div>
-			)}
+			<AnimatePresence>
+				{isFloating && (
+					<motion.div
+						initial={{ opacity: 0, y: 24, scale: 0.97 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						exit={{ opacity: 0, y: 24, scale: 0.97 }}
+						transition={{ duration: 0.18 }}
+						className="fixed bottom-24 right-6 z-40 w-[400px] max-h-[80vh] overflow-y-auto">
+						<FloatingPanel
+							formData={formData}
+							formatted={formatted}
+							loading={loading}
+							isMinimized={isMinimized}
+							onSubmit={handleSubmit}
+							onChange={handleChange}
+							onCopy={copyToClipboard}
+							onToggleMinimize={() =>
+								setIsMinimized(!isMinimized)
+							}
+							onClose={() => setIsFloating(false)}
+						/>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			{!isFloating && (
-				<main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
-					<div className="max-w-4xl mx-auto">
-						<div className="flex justify-between items-center mb-8">
-							<motion.h1
-								initial={{ opacity: 0, x: -20 }}
-								animate={{ opacity: 1, x: 0 }}
-								className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+				<main className="min-h-screen bg-[#17140F] py-14 px-5">
+					<div className="max-w-2xl mx-auto">
+						{/* Header */}
+						<header className="mb-10">
+							<h1 className="font-serif text-3xl text-[#EDE6D6] tracking-tight">
 								AjustaConteúdo
-							</motion.h1>
-							<div className="flex gap-2">
-								<button
+							</h1>
+							<p className="mt-1.5 text-sm text-[#9C917A]">
+								Prepare um texto para publicação em diferentes
+								formatos.
+							</p>
+
+							<div className="mt-6 flex flex-wrap gap-1 border-t border-[#35301F] pt-4">
+								<ToolbarButton
+									icon={<Download size={15} />}
+									label="Exportar/Importar"
+									active={showImportExport}
 									onClick={() =>
 										setShowImportExport(!showImportExport)
 									}
-									className="text-sm bg-gray-800/80 hover:bg-gray-700 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg transition-all hover:border-blue-500/50 backdrop-blur-sm">
-									💾 Exportar/Importar
-								</button>
-								<button
+								/>
+								<ToolbarButton
+									icon={<History size={15} />}
+									label={`Histórico (${history.length})`}
+									active={showHistory}
 									onClick={() => setShowHistory(!showHistory)}
-									className="text-sm bg-gray-800/80 hover:bg-gray-700 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg transition-all hover:border-purple-500/50 backdrop-blur-sm">
-									📜 Histórico ({history.length})
-								</button>
+								/>
 								<button
+									type="button"
 									onClick={openPopup}
 									className="text-sm bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 py-2 rounded-lg transition-all shadow-lg flex items-center gap-2">
 									<ExternalLink size={16} />
 									Abrir Popup
 								</button>
 							</div>
-						</div>
+						</header>
 
 						{showImportExport && (
 							<ImportExportPanel
@@ -357,148 +376,106 @@ export default function Home() {
 	);
 }
 
-function FloatingPanel({ ...props }: any) {
+// ---------- Componentes ----------
+
+function ToolbarButton({ icon, label, onClick, active }: any) {
 	return (
-		<div className="bg-gray-900/95 border border-gray-700 rounded-2xl shadow-2xl backdrop-blur-xl overflow-hidden">
-			<div className="bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-pink-600/20 px-4 py-3 border-b border-gray-700 flex justify-between items-center">
-				<h2 className="font-semibold text-white">AjustaConteúdo</h2>
-				<div className="flex gap-2">
+		<button
+			onClick={onClick}
+			className={`inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-md transition-colors ${
+				active
+					? "bg-[#262019] text-[#EDE6D6]"
+					: "text-[#9C917A] hover:text-[#EDE6D6] hover:bg-[#1F1B14]"
+			}`}>
+			{icon}
+			{label}
+		</button>
+	);
+}
+
+function FloatingPanel({
+	formData,
+	formatted,
+	loading,
+	isMinimized,
+	onSubmit,
+	onChange,
+	onCopy,
+	onToggleMinimize,
+	onClose,
+}: any) {
+	return (
+		<div className="bg-[#1B1712] border border-[#35301F] rounded-xl shadow-2xl shadow-black/50 overflow-hidden">
+			<div className="px-4 py-3 border-b border-[#35301F] flex justify-between items-center">
+				<span className="font-serif text-[#EDE6D6]">
+					AjustaConteúdo
+				</span>
+				<div className="flex gap-1">
 					<button
-						onClick={props.onToggleMinimize}
-						className="text-gray-400 hover:text-white transition-colors">
-						{props.isMinimized ? (
-							<Maximize2 size={18} />
+						onClick={onToggleMinimize}
+						className="text-[#9C917A] hover:text-[#EDE6D6] p-1 transition-colors">
+						{isMinimized ? (
+							<Maximize2 size={16} />
 						) : (
-							<Minimize2 size={18} />
+							<Minimize2 size={16} />
 						)}
 					</button>
 					<button
-						onClick={props.onClose}
-						className="text-gray-400 hover:text-red-400 transition-colors">
-						<X size={18} />
+						onClick={onClose}
+						className="text-[#9C917A] hover:text-[#BE6A4E] p-1 transition-colors">
+						<X size={16} />
 					</button>
 				</div>
 			</div>
 
-			{!props.isMinimized && (
+			{!isMinimized && (
 				<div className="p-4 space-y-4">
-					<form onSubmit={props.onSubmit} className="space-y-3">
+					<form onSubmit={onSubmit} className="space-y-3">
 						<InputField
-							label="Título *"
+							label="Título"
+							required
 							name="titulo"
-							value={props.formData.titulo}
-							onChange={props.onChange}
+							value={formData.titulo}
+							onChange={onChange}
 							placeholder="Digite o título"
+							dot={FIELD_COLOR.titulo}
 						/>
 						<InputField
 							label="Subtítulo"
 							name="subtitulo"
-							value={props.formData.subtitulo}
-							onChange={props.onChange}
+							value={formData.subtitulo}
+							onChange={onChange}
 							placeholder="Digite o subtítulo"
+							dot={FIELD_COLOR.subtitulo}
 						/>
 						<TextAreaField
-							label="Corpo *"
+							label="Corpo"
+							required
 							name="corpo"
-							value={props.formData.corpo}
-							onChange={props.onChange}
+							value={formData.corpo}
+							onChange={onChange}
 							placeholder="Digite o corpo do texto"
 							rows={4}
+							dot={FIELD_COLOR.corpo}
 						/>
 						<InputField
 							label="Fonte"
 							name="fonte"
-							value={props.formData.fonte}
-							onChange={props.onChange}
+							value={formData.fonte}
+							onChange={onChange}
 							placeholder="Ex: Instagram @usuario"
+							dot={FIELD_COLOR.fonte}
 						/>
-						<button
-							type="submit"
-							disabled={props.loading}
-							className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-							{props.loading ? (
-								<>
-									<Loader2
-										className="animate-spin"
-										size={18}
-									/>
-									Formatando...
-								</>
-							) : (
-								<>
-									<Sparkles size={18} />
-									Formatar
-								</>
-							)}
-						</button>
+						<SubmitButton loading={loading} />
 					</form>
 
-					{props.formatted && (
-						<div className="space-y-3 pt-3 border-t border-gray-700">
-							<ResultField
-								label="Título"
-								value={props.formatted.titulo}
-								onCopy={() =>
-									props.onCopy(
-										props.formatted.titulo,
-										"Título",
-										"titulo",
-									)
-								}
-								isCopied={props.copiedField === "titulo"}
-							/>
-							{props.formatted.subtitulo && (
-								<ResultField
-									label="Subtítulo"
-									value={props.formatted.subtitulo}
-									onCopy={() =>
-										props.onCopy(
-											props.formatted.subtitulo,
-											"Subtítulo",
-											"subtitulo",
-										)
-									}
-									isCopied={props.copiedField === "subtitulo"}
-								/>
-							)}
-							<ResultField
-								label="Corpo"
-								value={props.formatted.corpo}
-								onCopy={() =>
-									props.onCopy(
-										props.formatted.corpo,
-										"Corpo",
-										"corpo",
-									)
-								}
-								isCopied={props.copiedField === "corpo"}
-								multiline
-							/>
-							{props.formatted.fonte && (
-								<ResultField
-									label="Fonte"
-									value={props.formatted.fonte}
-									onCopy={() =>
-										props.onCopy(
-											props.formatted.fonte,
-											"Fonte",
-											"fonte",
-										)
-									}
-									isCopied={props.copiedField === "fonte"}
-								/>
-							)}
-							<ResultField
-								label="Versão X"
-								value={props.formatted.versaoX}
-								onCopy={() =>
-									props.onCopy(
-										props.formatted.versaoX,
-										"Versão X",
-										"versaoX",
-									)
-								}
-								isCopied={props.copiedField === "versaoX"}
+					{formatted && (
+						<div className="pt-3 border-t border-[#35301F]">
+							<ResultSheet
+								formatted={formatted}
+								onCopy={onCopy}
+								copiedField={undefined}
+								compact
 							/>
 						</div>
 					)}
@@ -518,67 +495,103 @@ function FormPanel({
 	onCopy,
 }: any) {
 	return (
-		<motion.form
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			onSubmit={onSubmit}
-			className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 mb-8 backdrop-blur-sm">
-			<div className="space-y-4">
-				<InputField
-					label="Título *"
-					name="titulo"
-					value={formData.titulo}
-					onChange={onChange}
-					placeholder="Digite o título"
-				/>
-				<InputField
-					label="Subtítulo"
-					name="subtitulo"
-					value={formData.subtitulo}
-					onChange={onChange}
-					placeholder="Digite o subtítulo"
-				/>
-				<TextAreaField
-					label="Corpo *"
-					name="corpo"
-					value={formData.corpo}
-					onChange={onChange}
-					placeholder="Digite o corpo do texto"
-					rows={6}
-				/>
-				<InputField
-					label="Fonte"
-					name="fonte"
-					value={formData.fonte}
-					onChange={onChange}
-					placeholder="Ex: Instagram @usuario"
-				/>
-				<button
-					type="submit"
-					disabled={loading}
-					className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold py-3.5 px-4 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
-					{loading ? (
-						<>
-							<Loader2 className="animate-spin" size={20} />
-							Formatando...
-						</>
-					) : (
-						<>
-							<Sparkles size={20} />
-							Formatar Conteúdo
-						</>
-					)}
-				</button>
-			</div>
-		</motion.form>
+		<div className="space-y-8">
+			<form
+				onSubmit={onSubmit}
+				className="bg-[#1B1712] border border-[#35301F] rounded-xl p-6">
+				<div className="space-y-4">
+					<InputField
+						label="Título"
+						required
+						name="titulo"
+						value={formData.titulo}
+						onChange={onChange}
+						placeholder="Digite o título"
+						dot={FIELD_COLOR.titulo}
+					/>
+					<InputField
+						label="Subtítulo"
+						name="subtitulo"
+						value={formData.subtitulo}
+						onChange={onChange}
+						placeholder="Digite o subtítulo"
+						dot={FIELD_COLOR.subtitulo}
+					/>
+					<TextAreaField
+						label="Corpo"
+						required
+						name="corpo"
+						value={formData.corpo}
+						onChange={onChange}
+						placeholder="Digite o corpo do texto"
+						rows={6}
+						dot={FIELD_COLOR.corpo}
+					/>
+					<InputField
+						label="Fonte"
+						name="fonte"
+						value={formData.fonte}
+						onChange={onChange}
+						placeholder="Ex: Instagram @usuario"
+						dot={FIELD_COLOR.fonte}
+					/>
+					<SubmitButton loading={loading} />
+				</div>
+			</form>
+
+			{formatted && (
+				<div>
+					<p className="text-sm text-[#9C917A] mb-3">Resultado</p>
+					<ResultSheet
+						formatted={formatted}
+						onCopy={onCopy}
+						copiedField={copiedField}
+					/>
+				</div>
+			)}
+		</div>
 	);
 }
 
-function InputField({ label, name, value, onChange, placeholder }: any) {
+function SubmitButton({ loading }: { loading: boolean }) {
+	return (
+		<button
+			type="submit"
+			disabled={loading}
+			className="w-full bg-[#C99A3C] hover:bg-[#DCB158] disabled:opacity-50 disabled:cursor-not-allowed text-[#17140F] font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+			{loading ? (
+				<>
+					<Loader2 className="animate-spin" size={18} />
+					Formatando...
+				</>
+			) : (
+				<>
+					<Sparkles size={18} />
+					Formatar
+				</>
+			)}
+		</button>
+	);
+}
+
+function InputField({
+	label,
+	name,
+	value,
+	onChange,
+	placeholder,
+	dot,
+	required,
+}: any) {
 	return (
 		<div>
-			<label className="block text-sm font-medium text-gray-300 mb-1.5">
+			<label className="flex items-center gap-2 text-sm text-[#9C917A] mb-1.5">
+				<span
+					className="w-1.5 h-1.5 rounded-full shrink-0"
+					style={{ backgroundColor: dot }}
+				/>
 				{label}
+				{required && <span className="text-[#BE6A4E]">*</span>}
 			</label>
 			<input
 				type="text"
@@ -586,7 +599,7 @@ function InputField({ label, name, value, onChange, placeholder }: any) {
 				value={value}
 				onChange={onChange}
 				placeholder={placeholder}
-				className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+				className="w-full px-3.5 py-2.5 bg-[#17140F] border border-[#35301F] rounded-lg text-[#EDE6D6] placeholder-[#6B6350] focus:outline-none focus:border-[#C99A3C]/60 focus:ring-1 focus:ring-[#C99A3C]/40 transition-colors"
 			/>
 		</div>
 	);
@@ -599,11 +612,18 @@ function TextAreaField({
 	onChange,
 	placeholder,
 	rows,
+	dot,
+	required,
 }: any) {
 	return (
 		<div>
-			<label className="block text-sm font-medium text-gray-300 mb-1.5">
+			<label className="flex items-center gap-2 text-sm text-[#9C917A] mb-1.5">
+				<span
+					className="w-1.5 h-1.5 rounded-full shrink-0"
+					style={{ backgroundColor: dot }}
+				/>
 				{label}
+				{required && <span className="text-[#BE6A4E]">*</span>}
 			</label>
 			<textarea
 				name={name}
@@ -611,43 +631,94 @@ function TextAreaField({
 				onChange={onChange}
 				placeholder={placeholder}
 				rows={rows}
-				className="w-full px-4 py-3 bg-gray-900/80 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-y"
+				className="w-full px-3.5 py-2.5 bg-[#17140F] border border-[#35301F] rounded-lg text-[#EDE6D6] placeholder-[#6B6350] focus:outline-none focus:border-[#C99A3C]/60 focus:ring-1 focus:ring-[#C99A3C]/40 transition-colors resize-y"
 			/>
 		</div>
 	);
 }
 
-function ResultField({ label, value, onCopy, isCopied, multiline }: any) {
+function ResultSheet({ formatted, onCopy, copiedField, compact }: any) {
+	const rows = [
+		{
+			key: "titulo",
+			label: "Título",
+			value: formatted.titulo,
+			serif: true,
+		},
+		{
+			key: "subtitulo",
+			label: "Subtítulo",
+			value: formatted.subtitulo,
+			serif: true,
+		},
+		{
+			key: "corpo",
+			label: "Corpo",
+			value: formatted.corpo,
+			multiline: true,
+		},
+		{ key: "fonte", label: "Fonte", value: formatted.fonte },
+		{
+			key: "versaoX",
+			label: "Versão X",
+			value: formatted.versaoX,
+			counter: true,
+		},
+	].filter((r) => r.value);
+
 	return (
-		<div>
-			<div className="flex justify-between items-center mb-2">
-				<label className="text-sm font-medium text-gray-300">
-					{label}
-				</label>
-				<button
-					onClick={onCopy}
-					className={`text-sm px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
-						isCopied
-							? "bg-green-600 text-white"
-							: "bg-gray-700 hover:bg-gray-600 text-gray-200"
-					}`}>
-					{isCopied ? (
-						<>
-							<Check size={14} />
-							Copiado
-						</>
-					) : (
-						<>
-							<Copy size={14} />
-							Copiar
-						</>
-					)}
-				</button>
-			</div>
-			<p
-				className={`text-gray-100 p-4 bg-gray-900/50 rounded-lg border border-gray-700 ${multiline ? "whitespace-pre-wrap" : ""}`}>
-				{value}
-			</p>
+		<div
+			className={
+				compact
+					? "space-y-3"
+					: "bg-[#1B1712] border border-[#35301F] rounded-xl divide-y divide-[#2A251C]"
+			}>
+			{rows.map((row) => (
+				<div key={row.key} className={compact ? "" : "px-5 py-4"}>
+					<div className="flex justify-between items-center mb-1.5">
+						<span className="flex items-center gap-2 text-xs text-[#9C917A]">
+							<span
+								className="w-1.5 h-1.5 rounded-full shrink-0"
+								style={{
+									backgroundColor: (FIELD_COLOR as any)[
+										row.key
+									],
+								}}
+							/>
+							{row.label}
+							{row.counter && (
+								<span className="tabular-nums text-[#6B6350]">
+									· {row.value.length} caract.
+								</span>
+							)}
+						</span>
+						<button
+							onClick={() =>
+								onCopy(row.value, row.label, row.key)
+							}
+							className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md transition-colors ${
+								copiedField === row.key
+									? "bg-[#7A9B7E]/20 text-[#7A9B7E]"
+									: "text-[#9C917A] hover:text-[#EDE6D6] hover:bg-[#262019]"
+							}`}>
+							{copiedField === row.key ? (
+								<Check size={13} />
+							) : (
+								<Copy size={13} />
+							)}
+							{copiedField === row.key ? "Copiado" : "Copiar"}
+						</button>
+					</div>
+					<p
+						className={`text-[#EDE6D6] ${row.serif ? "font-serif text-lg" : "text-sm"} ${
+							row.multiline
+								? "whitespace-pre-wrap leading-relaxed"
+								: ""
+						}`}>
+						{row.value}
+					</p>
+				</div>
+			))}
 		</div>
 	);
 }
@@ -660,20 +731,17 @@ function ImportExportPanel({
 	onClose,
 }: any) {
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: -10 }}
-			animate={{ opacity: 1, y: 0 }}
-			className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 mb-6 backdrop-blur-sm">
-			<div className="flex flex-wrap gap-3 items-center">
+		<div className="bg-[#1B1712] border border-[#35301F] rounded-xl p-5 mb-6">
+			<div className="flex flex-wrap gap-2 items-center">
 				<button
 					onClick={exportHistory}
 					disabled={history.length === 0}
-					className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-5 py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center gap-2">
-					<Download size={18} />
+					className="inline-flex items-center gap-2 text-sm bg-[#262019] hover:bg-[#2A251C] disabled:opacity-40 disabled:cursor-not-allowed text-[#EDE6D6] px-4 py-2 rounded-lg transition-colors">
+					<Download size={15} />
 					Exportar
 				</button>
-				<label className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-5 py-2.5 rounded-lg transition-all cursor-pointer shadow-lg flex items-center gap-2">
-					<Upload size={18} />
+				<label className="inline-flex items-center gap-2 text-sm bg-[#262019] hover:bg-[#2A251C] text-[#EDE6D6] px-4 py-2 rounded-lg transition-colors cursor-pointer">
+					<Upload size={15} />
 					Importar
 					<input
 						type="file"
@@ -685,21 +753,21 @@ function ImportExportPanel({
 				<button
 					onClick={clearHistory}
 					disabled={history.length === 0}
-					className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-5 py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center gap-2">
-					<Trash2 size={18} />
+					className="inline-flex items-center gap-2 text-sm text-[#BE6A4E] hover:bg-[#BE6A4E]/10 disabled:opacity-40 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors">
+					<Trash2 size={15} />
 					Limpar
 				</button>
 				<button
 					onClick={onClose}
-					className="text-gray-400 hover:text-white px-3 py-2 transition-colors">
-					<X size={18} />
+					className="ml-auto text-[#9C917A] hover:text-[#EDE6D6] p-2 transition-colors">
+					<X size={16} />
 				</button>
 			</div>
-			<p className="text-sm text-gray-400 mt-3">
+			<p className="text-sm text-[#6B6350] mt-3">
 				{history.length} {history.length === 1 ? "item" : "itens"} no
 				histórico
 			</p>
-		</motion.div>
+		</div>
 	);
 }
 
@@ -711,17 +779,21 @@ function HistoryPanel({
 	onClose,
 }: any) {
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: -10 }}
-			animate={{ opacity: 1, y: 0 }}
-			className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 mb-6 backdrop-blur-sm">
-			<h2 className="text-lg font-semibold text-white mb-4">
-				Histórico ({history.length}{" "}
-				{history.length === 1 ? "item" : "itens"})
-			</h2>
-			<div className="max-h-96 overflow-y-auto space-y-2 pr-2">
+		<div className="bg-[#1B1712] border border-[#35301F] rounded-xl p-5 mb-6">
+			<div className="flex justify-between items-center mb-4">
+				<h2 className="text-[#EDE6D6]">
+					Histórico ({history.length}{" "}
+					{history.length === 1 ? "item" : "itens"})
+				</h2>
+				<button
+					onClick={onClose}
+					className="text-[#9C917A] hover:text-[#EDE6D6] p-1 transition-colors">
+					<X size={16} />
+				</button>
+			</div>
+			<div className="max-h-96 overflow-y-auto -mx-2">
 				{history.length === 0 ? (
-					<p className="text-gray-500 text-center py-6">
+					<p className="text-[#6B6350] text-center py-6 text-sm">
 						Nenhum item no histórico
 					</p>
 				) : (
@@ -729,33 +801,24 @@ function HistoryPanel({
 						<div
 							key={item.id}
 							onClick={() => loadFromHistory(item)}
-							className="bg-gray-900/50 border border-gray-700 rounded-lg p-3 hover:bg-gray-700/50 hover:border-purple-500/50 transition-all cursor-pointer group">
-							<div className="flex justify-between items-start">
-								<div className="flex-1">
-									<p className="font-medium text-gray-200 truncate group-hover:text-purple-300 transition-colors">
-										{item.titulo}
-									</p>
-									<p className="text-xs text-gray-500 mt-1">
-										{formatDate(item.createdAt)}
-									</p>
-								</div>
-								<button
-									onClick={(e) =>
-										deleteFromHistory(item.id, e)
-									}
-									className="text-red-500 hover:text-red-400 ml-3 p-1 hover:bg-red-500/10 rounded transition-all">
-									<Trash2 size={16} />
-								</button>
+							className="flex justify-between items-center gap-3 px-2 py-2.5 rounded-lg hover:bg-[#262019] transition-colors cursor-pointer group">
+							<div className="min-w-0">
+								<p className="text-sm text-[#EDE6D6] truncate">
+									{item.titulo}
+								</p>
+								<p className="text-xs text-[#6B6350] mt-0.5">
+									{formatDate(item.createdAt)}
+								</p>
 							</div>
+							<button
+								onClick={(e) => deleteFromHistory(item.id, e)}
+								className="text-[#6B6350] hover:text-[#BE6A4E] p-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+								<Trash2 size={15} />
+							</button>
 						</div>
 					))
 				)}
 			</div>
-			<button
-				onClick={onClose}
-				className="mt-4 text-gray-400 hover:text-white px-3 py-2 transition-colors">
-				<X size={18} />
-			</button>
-		</motion.div>
+		</div>
 	);
 }
