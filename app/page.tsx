@@ -330,6 +330,17 @@ export default function Home() {
 									active={showHistory}
 									onClick={() => setShowHistory(!showHistory)}
 								/>
+								<ToolbarButton
+									icon={<ExternalLink size={15} />}
+									label="Abrir em popup"
+									onClick={() =>
+										window.open(
+											"/popup",
+											"AjustaPopup",
+											"width=450,height=700,resizable=yes,scrollbars=yes",
+										)
+									}
+								/>
 							</div>
 						</header>
 
