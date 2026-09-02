@@ -725,7 +725,7 @@ function HistoryPanel({
 						Nenhum item no histórico
 					</p>
 				) : (
-					history.map((item) => (
+					history.map((item: HistoryItem) => (
 						<div
 							key={item.id}
 							onClick={() => loadFromHistory(item)}
